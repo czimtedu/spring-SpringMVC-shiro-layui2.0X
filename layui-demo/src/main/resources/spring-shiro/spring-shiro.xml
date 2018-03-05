@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans  
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd   
+    http://www.springframework.org/schema/context   
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util.xsd
+    http://www.springframework.org/schema/aop 
+   	http://www.springframework.org/schema/aop/spring-aop-4.1.xsd"
+	default-lazy-init="true">
+	
+	<!-- 缓存：缓存管理器（shiro这里也是用了ehcache缓存管理器） -->
+    <bean id="cacheManagerWrapper" class="com.changhong.people.common.utils.cache.EhcacheManagerWrapper">
+        <property name="cacheManager" ref="ehcacheManager"/><!-- 引用了ehcache缓存管理器 -->
+    </bean>
+	<!--Shiro Spring AOP权限注解的支持(启动)-->
+	<aop:config proxy-target-class="true"></aop:config>  
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">  
+	    <property name="securityManager" ref="securityManager"/>  
+	</bean> 
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />								
+		<property name="loginUrl" value="/login"/>								                
+		<property name="filterChainDefinitionMap" ref="chainDefinitionSectionMetaSource" />	   
+		<!-- <property name="filters">
+            <util:map>
+                <entry key="sysUser" value-ref="sysUserFilter"/> 
+                <entry key="kickout" value-ref="kickoutSessionControlFilter"/>
+            </util:map>
+        </property> -->
+	</bean>
+	 <!-- 安全管理器：数据源 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myRealm"/>					    
+        <property name="sessionManager" ref="sessionManager"/>		
+        <property name="cacheManager" ref="cacheManagerWrapper"/>	
+    </bean>
+	<!--【1.1.1】自定义Realm,进行数据源配置-->
+	<bean id="myRealm" class="com.changhong.people.common.utils.shiro.MyRealm">
+		<property name="credentialsMatcher" ref="credentialsMatcher" />	<!-- 凭证匹配器 -->
+		<property name="cachingEnabled" value="false" />				<!-- 是否启用缓存 -->
+	</bean>
+	<!-- 【1.1.1.1】凭证匹配器 -->
+    <bean id="credentialsMatcher" class="com.changhong.people.common.utils.shiro.RetryLimitHashedCredentialsMatcher">
+        <constructor-arg ref="cacheManagerWrapper"/>				<!-- 引用了ehcache缓存管理器 -->
+        <property name="hashAlgorithmName" value="md5"/>	<!-- MD5算法 -->
+        <property name="hashIterations" value="2"/>	<!-- 迭代2次加密 -->
+        <property name="storedCredentialsHexEncoded" value="true"/><!-- 表示是否需要将加密后的密码进行16进制编码(需要和生成密码时的一样，默认是base64) -->
+    </bean>
+	<!-- 【1.1.2】会话管理器 -->
+      <!-- 会话管理器 -->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.ServletContainerSessionManager"/>
+    
+	<!--【1.2】自定义权限配置-->
+	<bean id="chainDefinitionSectionMetaSource" class="com.changhong.people.common.utils.shiro.ChainDefinitionSectionMetaSource">
+		<property name="filterChainDefinitions">
+            <value>
+                /login = anon
+                /customerServiceLogin = anon
+                /bicycleTroubleOpen/** = anon
+                /bicycleOpen/** = anon
+                /static/** = anon
+                /auth/switch = anon
+                /logout = logout
+                /authenticated = anon
+                /authImage = anon
+                /validateCode = anon
+                /getPublicKey = anon
+                /event/channel/** = anon
+                /event/join = anon
+                /event/result/** = anon
+                /webview/** = anon
+                /notice/detail/** = anon
+                /download.html = anon
+                /** = authc
+                
+            </value>
+        </property>
+	</bean>
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <prop key="org.apache.shiro.authz.UnauthorizedException">/system/unauthorized</prop>
+            </props>
+        </property>
+    </bean>
+	<!-- 【2】Shiro生命周期处理器--> 
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+</beans>

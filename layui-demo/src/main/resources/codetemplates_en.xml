@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<templates>
+	 <!-- 类注释 -->
+	 <template autoinsert="false" context="typecomment_context" deleted="false" description="Comment for created types" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.typecomment" name="typecomment">
+/**
+ * @ClassName：${type_name}
+ * @Description：
+ * @Author：${user}
+ * @Date：${date}${time}
+ * @version：1.0.0
+ */
+	 </template>
+	  <!-- 创建java文件注释 -->
+	 <template autoinsert="false" context="filecomment_context" deleted="false" description="Comment for created Java files" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.filecomment" name="filecomment">
+/**
+ * All rights Reserved, Designed By changhong
+ * @Title: ${file_name}   
+ * @Package ${package_name}   
+ * @Description: ${todo}   
+ * @Author: ${user}     
+ * @Date: ${date} ${time}   
+ * @Version V1.0 
+ * @CopyRight: ${year} www.changhong.com Inc. All rights reserved. 
+ */
+	 </template>
+	 
+	 <!-- 生成代理方法注释 -->
+	 <template autoinsert="false" context="delegatecomment_context" deleted="false" description="Comment for delegate methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.delegatecomment" name="delegatecomment">
+/**
+ * ${tags}
+ * @${see_to_target}
+ */
+	</template>
+	
+	<!-- 一般方法注释 -->
+	<template autoinsert="false" context="methodcomment_context" deleted="false" description="Comment for non-overriding methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.methodcomment" name="methodcomment">
+/**
+ * @MethodName：${enclosing_method}
+ * ${tags}
+ * @ReturnType：${return_type}
+ * @Description：
+ * @Creator：${user}
+ * @CreateTime：${date}${time}
+ * @Modifier：
+ * @ModifyTime：
+ */
+	</template>
+	 
+<!-- 覆盖方法注释-->
+	 <template autoinsert="false" context="overridecomment_context" deleted="false" description="Comment for overriding methods" enabled="true" id="org.eclipse.jdt.ui.text.codetemplates.overridecomment" name="overridecomment">
+/**
+ * @MethodName：${enclosing_method}
+ * ${tags}
+ * @ReturnType：${return_type}
+ * @Description：
+ * @Creator：${user}
+ * @CreateTime：${date}${time}
+ * @Modifier：
+ * @ModifyTime：
+ */
+	 </template>
+ 
+ </templates>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.changhong.people.business.dao.system.IRoleDao">
+
+	<!-- 基本结果集 -->
+	<resultMap id="BaseResultMap" type="com.changhong.people.business.entity.system.Role">
+		<id column="id" property="id" />
+		<result column="role_key" property="roleKey" />
+		<result column="role_name" property="roleName" />
+		<result column="available" property="available" />
+		<result column="create_time" property="createTime" />
+		<result column="update_time" property="updateTime" />
+		<result column="description" property="description" />
+		<result column="resourceIds" property="resourceIds" />
+	</resultMap>
+
+	<!-- 关联结果集 -->
+	<resultMap id="MyRoleResult" extends="BaseResultMap" type="com.changhong.people.business.entity.system.Role">
+		<collection property="resources" javaType="list" ofType="com.changhong.people.business.entity.system.Resource">
+			<id column="sid" property="id" />
+			<result column="sresKey" property="resKey" />
+			<result column="sresName" property="resName" />
+			<result column="stype" property="type" />
+			<result column="sresUrl" property="resUrl" />
+			<result column="sishide" property="ishide" />
+			<result column="sdescription" property="description" />
+		</collection>
+	</resultMap>
+
+	<!-- SQL(基础) -->
+	<sql id="comm_sql_1">
+		r.id,r.role_key,r.role_name,r.available,r.create_time,r.update_time, r.description,
+		(
+			SELECT group_concat(rs.resource_id)
+			FROM yb_platform_role_resource rs
+			Where rs.role_id = r.id
+		) resourceIds
+	</sql>
+
+	<!-- SQL(联表_资源) -->
+	<sql id="comm_sql_2">
+		,s.id 'sid',s.resName 'sresName',s.resKey 'sresKey',s.type 'stype',s.resUrl 'sresUrl',s.ishide 'sishide',s.description 'sdescription'
+		FROM yb_platform_role r
+		LEFT join yb_platform_role_resource rr on rr.role_id = r.id
+		LEFT join yb_platform_resource s on s.id = rr.resource_id
+	</sql>
+
+	<!-- 插入（entity） -->
+	<insert id="insert" parameterType="com.changhong.people.business.entity.system.Role" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO yb_platform_role
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="roleKey != null and roleKey != ''">role_key,</if>
+			<if test="roleName != null and roleName != ''">role_name,</if>
+			<if test="createTime != null ">create_time,</if>
+			<if test="description != null and description != ''">description,</if>
+			<if test="available != null ">available</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="roleKey != null and roleKey != ''">#{roleKey},</if>
+			<if test="roleName != null and roleName != ''">#{roleName},</if>
+			<if test="createTime != null ">#{createTime},</if>
+			<if test="description != null and description != ''">#{description},</if>
+			<if test="available != null">#{available}</if>
+		</trim>
+	</insert>
+
+	<!-- 插入（关联数据） -->
+	<insert id="insertRoleAndResource" parameterType="list" useGeneratedKeys="true">
+		INSERT INTO yb_platform_role_resource
+		(
+			role_id, resource_id
+		) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.roleId},#{item.resourceId})
+		</foreach>
+	</insert>
+	<!-- 删除(关联数据) -->
+	<delete id="deleteRoleAndResource" parameterType="long"> 
+		DELETE from yb_platform_role_resource where role_id = #{roleId}
+	</delete>
+
+	<!-- 修改（entity） -->
+	<update id="update" parameterType="com.changhong.people.business.entity.system.Role">
+		UPDATE yb_platform_role
+		<set>
+			<if test="roleName != null and roleName != ''">role_name = #{roleName},</if>
+			<if test="description != null and description != ''">description = #{description},</if>
+			<if test="updateTime != null ">update_time = #{updateTime}</if>
+		</set>
+		WHERE id = #{id}
+	</update>
+
+	<!-- 查询（ID） -->
+	<select id="getById" parameterType="long" resultMap="MyRoleResult">
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+ 		WHERE r.id = #{id}
+	</select>
+
+	<!-- 查询（where） -->
+	<select id="getByWhere" parameterType="hashMap" resultMap="MyRoleResult">
+		SELECT
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+		WHERE 1=1
+		<if test="roleName !=null and roleName !=''">and r.role_name=#{roleName}</if>
+	</select>
+	
+	<!-- 查询（resourceId） -->
+	<select id="getByResourceId" parameterType="hashMap" resultMap="BaseResultMap">
+		SELECT
+		<include refid="comm_sql_1" />
+		FROM yb_platform_role r
+		LEFT JOIN yb_platform_resource rr ON rr.role_id = r.id
+		WHERE rr.resource_id=#{resourceId}
+	</select> 
+
+
+	<!-- 查询（ALL） -->
+	<select id="getAll" resultMap="BaseResultMap">
+		SELECT
+		<include refid="comm_sql_1" />
+		FROM yb_platform_role r
+	</select>
+
+	<!-- 查询（分页查询_query） -->
+	<select id="findQuery" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultMap="MyRoleResult">
+		SELECT
+			<include refid="comm_sql_1" />
+		FROM yb_platform_role r
+		WHERE 1=1
+<!-- 		 and r.role_key != 'sysadmin'  -->
+		<if test="roleName !=null and roleName !=''">and r.role_name like CONCAT('%',#{roleName},'%')</if>
+		<if test="column != null and column != ''">
+			ORDER BY ${column} ${sort}
+		</if>
+		LIMIT #{limit} offset #{pageOffset}
+	</select>
+
+	<!-- 查询（分页查询_count） -->
+	<select id="findCount" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultType="java.lang.Integer">
+		SELECT count(r.id)
+		FROM yb_platform_role r
+		WHERE 1=1 
+<!-- 		and r.role_key != 'sysadmin'  -->
+		<if test="roleName !=null and roleName !=''">and r.role_name like CONCAT('%',#{roleName},'%')</if>
+	</select>
+	
+	<!-- 查询（roleName）-->
+	<select id="getByRoleName" parameterType="String" resultMap="BaseResultMap">
+		SELECT *
+			
+			FROM yb_platform_role r
+		WHERE r.role_name = #{roleName}
+	</select> 
+
+</mapper>

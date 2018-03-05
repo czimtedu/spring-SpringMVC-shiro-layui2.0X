@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.changhong.people.business.dao.system.ISysUserDao">
+
+	<!-- 基本结果集 -->
+	<resultMap id="BaseResultMap" type="com.changhong.people.business.entity.system.SysUser">
+		<id column="id" property="id"/>
+		<result column="account" property="account" />
+		<result column="name" property="name" />
+		<result column="mobile" property="mobile" />
+		<result column="password" property="password" />
+		<result column="salt" property="salt" />
+		<result column="status" property="status"/>
+		<result column="locked" property="locked"/>
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+		<result column="remark" property="remark"/> 
+		<result column="passStatus" property="passStatus"/> 
+		
+		<result column="role_id" property="roleId"/>
+	</resultMap>
+	<!-- 导出结果集 -->
+	<!-- <resultMap id="BaseResultMapVo" type="com.changhong.people.business.entity.SysUserVo">
+		<id column="id" property="id"/>
+		<result column="account" property="account" />
+		<result column="name" property="name" />
+		<result column="roleName" property="roleName"/>
+		<result column="status" property="status" />
+		<result column="create_time" property="createTime"/>
+		<result column="update_time" property="updateTime"/>
+	</resultMap> -->
+	<!-- 关联结果集 -->
+	<resultMap id="MySysUserResult" extends="BaseResultMap"  type="com.changhong.people.business.entity.system.SysUser" >
+	
+	    <association property="role" javaType="com.changhong.people.business.entity.system.Role">
+	    	<id column="rid" property="id"/>
+			<result column="rrole_name" property="roleName" />
+			<result column="rrole_key" property="roleKey"/>
+			<result column="ravailable" property="available"/>
+	    </association>
+	</resultMap>
+	
+	<!-- SQL(基础) -->
+	<sql id="comm_sql_1">
+		u.id,u.name,u.account,u.password,u.mobile,u.salt,u.status,u.locked,
+		u.create_time,u.update_time,u.remark,u.role_id,u.passStatus
+	</sql>
+	<!-- SQL(联表_角色) -->
+	<sql id="comm_sql_2">
+			,r.id 'rid',r.role_key 'rrole_key',r.role_name 'rrole_name',r.available 'ravailable'
+	</sql>
+	<!-- 查询（account）-->
+	<select id="getByUserName" parameterType="hashMap" resultMap="MySysUserResult">
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+			FROM yb_platform_sysuser u
+			LEFT JOIN yb_platform_role r on u.role_id = r.id
+		WHERE 1=1
+		<if test="account != null and account != ''">and u.account = #{account}</if>
+		<if test="id != null">and u.id != #{id}</if>
+	</select>
+	<!-- 判断账户名是否重复 -->
+	<select id="judgeExistOfUser" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultType="long">
+		SELECT 
+			COUNT(*) 
+		FROM yb_platform_sysuser u
+		WHERE u.account = #{account}
+		<if test="id != null">and u.id != #{id}</if>
+		limit 1
+	</select>
+	<!-- 查询（account）-->
+	<select id="getByUserNameStruts" parameterType="String" resultMap="MySysUserResult">
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+			FROM yb_platform_sysuser u
+			LEFT JOIN yb_platform_role r on u.role_id = r.id
+		WHERE u.account=#{account} and u.status != 1
+	</select> 
+	
+	<!-- 插入（entity） -->
+	<insert id="insert" parameterType="com.changhong.people.business.entity.system.SysUser" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO yb_platform_sysuser
+		 <trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="name != null and name != ''">name,</if>
+			<if test="account != null and account != ''">account,</if>
+			<if test="mobile != null ">mobile,</if>
+			<if test="password != null and password != ''">password,</if>
+			<if test="salt != null and salt != ''">salt,</if>
+			<if test="createTime != null">create_time,</if>
+			<if test="status != null">status,</if>
+			<if test="locked != null">locked,</if>
+			<if test="remark != null and remark != ''">remark,</if>
+			<if test="roleId != null">role_id</if>
+			<if test="passStatus != null">passStatus</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="name != null and name != ''">#{name},</if>
+			<if test="account != null and account != ''">#{account},</if>
+			<if test="mobile != null">#{mobile},</if>
+			<if test="password != null and password != ''">#{password},</if>
+			<if test="salt != null and salt != ''">#{salt},</if>
+			<if test="createTime != null">#{createTime},</if>
+			<if test="status != null">#{status},</if>
+			<if test="locked != null">#{locked},</if>
+			<if test="remark != null and remark != ''">#{remark},</if>
+			<if test="roleId != null " >#{roleId}</if>
+			<if test="passStatus != null">#{passStatus}</if>
+		</trim>
+	</insert>
+	
+	
+	<!-- 删除(ID) -->
+	<delete id="deleteById" parameterType="string">
+		DELETE from yb_platform_sysuser where id = #{id}
+	</delete>
+	
+	
+	<!-- 修改（entity）-->
+	<update id="update" parameterType="com.changhong.people.business.entity.system.SysUser">
+		UPDATE yb_platform_sysuser 
+		<set>
+		  	<if test="name != null and name != ''">name = #{name},</if>
+			<if test="account != null and account != ''">account = #{account},</if>
+			<if test="mobile != null ">mobile = #{mobile},</if>
+			<if test="password != null and password != ''">password = #{password},</if>
+			<if test="salt != null and salt != ''">salt = #{salt},</if>
+			<if test="updateTime != null">update_time = #{updateTime},</if>
+			<if test="status != null">status = #{status},</if>
+			<if test="locked != null">locked = #{locked},</if>
+			<if test="remark != null">remark = #{remark},</if>
+			<if test="roleId != null " >role_id = #{roleId},</if>
+			<if test="passStatus != null " >passStatus = #{passStatus}</if>
+		</set>
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 查询（ID）-->
+	<select id="getById" parameterType="long" resultMap="MySysUserResult">
+		SELECT  
+			<include refid="comm_sql_1" />
+		FROM yb_platform_sysuser u
+		WHERE u.id = #{id}
+	</select> 
+	
+	<!-- 查询（where） -->
+	<select id="getByWhere" parameterType="hashMap" resultMap="MySysUserResult">
+		SELECT  tmp.* from(
+		    SELECT
+				<include refid="comm_sql_1" />
+				<include refid="comm_sql_2" />
+			FROM yb_platform_sysuser u
+			LEFT join yb_platform_role r on u.role_id = r.id
+		) tmp
+		WHERE 1=1 
+		<if test="account !=null and account !=''">and tmp.account like CONCAT('%',#{account},'%')</if> 
+		<if test="roleName !=null and roleName !=''">and tmp.roleName like CONCAT('%',#{roleName},'%')</if> 
+		<if test="roleId !=null and roleId !=''">and tmp.role_id like CONCAT('%',#{roleId},'%')</if> 
+		<if test="status !=null and status !='-1'">and tmp.status=#{status}</if> 
+	</select>
+	<!-- <select id="getByWhereVo" parameterType="hashMap" resultMap="BaseResultMapVo">
+		SELECT tmp.id,tmp.name,tmp.account,tmp.password,tmp.mobile,tmp.salt,
+				if(tmp.status != 1,'启用','禁用') AS status,
+				tmp.create_time,tmp.update_time,tmp.role_id,tmp.passStatus,tmp.roleName
+		 from (
+		   SELECT 
+				u.*,r.id 'rid',r.role_name 'roleName'
+			FROM yb_platform_sysuser u
+			LEFT join yb_platform_role r on u.role_id = r.id
+		)tmp
+		WHERE 1=1  
+		<if test="account !=null and account !=''">and tmp.account like CONCAT('%',#{account},'%')</if> 
+		<if test="roleName !=null and roleName !=''">and tmp.roleName like CONCAT('%',#{roleName},'%')</if>
+		<if test="status !=null and status !='-1'">and tmp.status=#{status}</if> 
+		ORDER BY tmp.create_time desc
+	</select> -->
+	<!-- 查询（分页查询_query） -->
+	<select id="findQuery" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultMap="MySysUserResult">
+		SELECT tmp.* from (
+		   SELECT 
+				<include refid="comm_sql_1" />
+				<include refid="comm_sql_2" />
+			FROM yb_platform_sysuser u
+			LEFT join yb_platform_role r on u.role_id = r.id
+		)tmp
+		WHERE 1=1  
+		<if test="account !=null and account !=''">and tmp.account like CONCAT('%',#{account},'%')</if> 
+		<if test="roleName !=null and roleName !=''">and tmp.rrole_name like CONCAT('%',#{roleName},'%')</if>
+		<if test="status !=null and status !='-1'">and tmp.status=#{status}</if> 
+		<if test="isAdmin==false">and tmp.account != 'admin'</if> 
+		<if test="column != null and column != '' and sort != null and sort != ''">
+			ORDER BY tmp.${column} ${sort}
+		</if>
+		LIMIT #{limit} offset #{pageOffset}
+	</select>
+	
+	<!-- 查询（分页查询_count） -->
+	<select id="findCount" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultType="java.lang.Integer">
+	SELECT count(tmp.id) from (
+		   SELECT 
+				<include refid="comm_sql_1" />
+				<include refid="comm_sql_2" />
+			FROM yb_platform_sysuser u
+			LEFT join yb_platform_role r on u.role_id = r.id
+		)tmp
+		WHERE 1=1  
+		<if test="account !=null and account !=''">and tmp.account like CONCAT('%',#{account},'%')</if> 
+		<if test="roleName !=null and roleName !=''">and tmp.rrole_name like CONCAT('%',#{roleName},'%')</if>
+		<if test="status !=null and status !='-1'">and tmp.status=#{status}</if> 
+		<if test="isAdmin==false">and tmp.account != 'admin'</if> 
+		<if test="column != null and column != '' and sort != null and sort != ''">
+			ORDER BY tmp.${column} ${sort}
+		</if>
+	</select>
+</mapper>

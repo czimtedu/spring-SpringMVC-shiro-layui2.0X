@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<!-- 注意这个文件绝对路径不能在有中文或者空格的目录下，这样会报错 -->
+	<!-- Appenders -->
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				   value="%d{{yyyy-MM-dd HH:mm:ss} %-5p %c - %m %X{userId} current host: %X{localHostIP}   remote host: %X{remoteHostIP}   %X{application}   %X{UUID} %n" />
+		</layout>
+
+	</appender>
+
+	<appender name="database" class="org.apache.log4j.jdbc.JDBCAppender">
+		<param name="URL"
+			   value="jdbc\:mysql\://localhost\:3306/oto?useUnicode\=true" />
+		<param name="user" value="root" />
+		<param name="password" value="root123" />
+		<param name="driver" value="com.mysql.jdbc.Driver" />
+		<param name="Threshold" value="info" />
+		<param name="BufferSize" value="1" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				   value="INSERT INTO yb_platform_run_log (UserID,Class, Mothod, CreateTime, LogLevel, LogLine, MSG,LocalHostIP,RemoteHostIP,UUID) VALUES(\'%X{userId}\',\'%C\',\'%M\',\'%d{yyyy-MM-dd HH:mm:ss}\',\'%p\',\'%l\',\'%m\',\'%X{localHostIP}\',\'%X{remoteHostIP}\' ,\'%X{UUID}\' )" />
+		</layout>
+
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="info" />
+			<param name="LevelMax" value="ERROR" />
+			<param name="AcceptOnMatch" value="true" />
+		</filter>
+
+	</appender>
+
+
+
+	<!-- yydc info LOG: [info->info] -->
+	<appender name="YYinfo" class="org.apache.log4j.RollingFileAppender">
+		<param name="Append" value="true" />
+		<param name="File" value="/log/ybdc_yy.log" />
+		<param name="MaxFileSize" value="20MB" />
+		<param name="MaxBackupIndex" value="15" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				   value="%d{{yyyy-MM-dd HH:mm:ss} %-5p %c - %m %X{userId} current host: %X{localHostIP}   remote host: %X{remoteHostIP}   %X{application}   %X{UUID} %n" />
+		</layout>
+		<filter class="org.apache.log4j.varia.LevelRangeFilter">
+			<param name="LevelMin" value="info" />
+			<param name="LevelMax" value="ERROR" />
+			<param name="AcceptOnMatch" value="true" />
+		</filter>
+	</appender>
+	<!-- Application Loggers -->
+	<logger name="com.fh">
+		<level value="info" />
+	</logger>
+
+	<!-- 3rdparty Loggers -->
+	<logger name="org.springframework.core">
+		<level value="error" />
+	</logger>
+
+	<logger name="org.springframework.beans">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.springframework.context">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.springframework.web">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.springframework.jdbc">
+		<level value="info" />
+	</logger>
+
+	<logger name="org.mybatis.spring">
+		<level value="debug" />
+	</logger>
+	<logger name="java.sql">
+		<level value="debug" />
+	</logger>
+	<logger name="org.springframework.session">
+		<level value="debug" />
+	</logger>
+	<!-- <logger name="com.ybdc.yy" >
+	 <level value="info" />
+	  <appender-ref ref="database"
+		/>
+		</logger> -->
+	<logger name="com.ybdc.yy">
+		<level value="info" />
+		<appender-ref ref="YYinfo" />
+	</logger>
+	<!-- Root Logger -->
+	<root>
+		<priority value="debug" />
+		<appender-ref ref="console" />
+
+	</root>
+
+</log4j:configuration>

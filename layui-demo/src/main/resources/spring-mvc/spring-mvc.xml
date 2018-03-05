@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://code.alibabatech.com/schema/dubbo          
+    http://code.alibabatech.com/schema/dubbo/dubbo.xsd  
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+   	http://www.springframework.org/schema/tx
+   	http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+   	http://www.springframework.org/schema/mvc 
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd   
+   	http://www.springframework.org/schema/aop 
+   	http://www.springframework.org/schema/aop/spring-aop-4.1.xsd"
+	default-lazy-init="true">
+	
+	
+	<!--配置需要扫描的controller的包名 -->
+	 <!-- 扫描spingMVC注解 -->
+    <!-- <context:component-scan base-package="com.changhong.oto.system.web.controller" use-default-filters="false"> -->
+    <context:component-scan base-package="com.changhong.people.business.web.controller" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+        <!-- <context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/> -->
+    </context:component-scan>
+	
+	<!-- 注解驱动 -->
+	<mvc:annotation-driven validator="validator">
+		<mvc:message-converters>
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<!--避免IE执行AJAX时，返回JSON出现下载文件 -->
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+						<value>text/json;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+				<!-- 处理responseBody里面日期类型，将其中的日期设置为指定的日期格式 -->
+				<property name="objectMapper">
+					<bean class="com.fasterxml.jackson.databind.ObjectMapper">
+						<property name="dateFormat">
+							<bean class="java.text.SimpleDateFormat">
+								<constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />
+							</bean>
+						</property>
+					</bean>
+				</property>
+			</bean>
+			<!--自定义json格式application/crypt-json -->
+			<bean id="cryptFastJsonHttpMessageConverter"
+				class="com.changhong.people.common.utils.crypt.CryptFastJsonHttpMessageConverter">
+				<property name="returnKeyName" value="key"></property>
+				<property name="supportedMediaTypes">
+					<list>
+						<value>application/crypt-json;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	
+	 <!--自定义 验证工厂类 LocalValidatorFactoryBean  绑定验证使用的国际化bean-->
+    <bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <!-- 引入 ContextLoaderListener.xml 中配置的 资源文件 bean -->
+        <property name="validationMessageSource" ref="messageSource"></property>
+    </bean>
+    
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver" p:defaultLocale="en_US" />
+	
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">  
+        <property name="defaultEncoding" value="UTF-8"/>                    <!-- 默认编码格式   -->
+        <property name="useCodeAsDefaultMessage" value="true"></property>   <!-- 加载不到对应key时，不抛出异常直接返回key作为value  --> 
+        <property name="cacheSeconds" value="1800"></property>             <!--  刷新国际化资源时间 单位:秒。   -->
+        <property name="basenames">  
+            <list>  
+                <value>classpath:i18n/message_i18n</value>  
+            </list>  
+        </property>  
+    </bean>
+
+	<!-- 强制使用cglib代理模式 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- 静态资源处理，不走mvc处理逻辑 -->
+	<mvc:default-servlet-handler />
+
+	<!-- 视图解析：对模型视图名称的解析，即在模型视图名称添加前后缀 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+	</bean>
+
+	<!-- 配置文件上传 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 默认编码 -->
+		<property name="defaultEncoding" value="utf-8" />
+		<!-- 文件大小最大值 -->
+		<property name="maxUploadSize" value="104857600" /> <!-- 100M 1024 * 1024 * 100，单位默认为字节 -->
+		<!-- 内存中的最大值 -->
+		<property name="maxInMemorySize" value="40960" />
+	</bean>
+        
+	<!-- spring mvc拦截器 -->
+	 <mvc:interceptors>
+        <bean
+            class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+        </bean>
+    </mvc:interceptors>
+	
+	<!-- 引入activiti 配置文件 -->
+	<!-- <import resource="classpath:activity/activity-context.xml" /> -->
+</beans>

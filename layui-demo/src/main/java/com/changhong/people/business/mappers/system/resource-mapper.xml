@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.changhong.people.business.dao.system.IResourceDao">
+	<!-- 基本结果集 -->
+	<resultMap id="BaseResultMap" type="com.changhong.people.business.entity.system.Resource">
+		<id column="id" property="id"/>
+		<id column="resName" property="resName" />
+		<id column="resKey" property="resKey" />
+		<id column="parentId" property="parentId" />
+		<id column="type" property="type"/>
+		<id column="resUrl" property="resUrl"/>
+		<id column="level" property="level"/>
+		<id column="icon" property="icon"/>
+		<id column="ishide" property="ishide"/>
+		<id column="createTime" property="createTime"/>
+		<id column="updateTime" property="updateTime"/>
+		<id column="description" property="description" />
+		<id column="btnHtml" property="btnHtml"/>
+		<id column="childrenIds" property="childrenIds"/>
+		<id column="searchSn" property="searchSn"/>
+		<id column="btnType" property="btnType"/>
+	</resultMap>
+	<!-- 关联结果集 -->
+	<resultMap id="MyResourceResult" extends="BaseResultMap"  type="com.changhong.people.business.entity.system.Resource" >
+		<collection property="children" javaType="list" ofType="com.changhong.people.business.entity.system.Resource">
+			<result column="sid" property="id"/>
+			<result column="sresName" property="resName"/>
+			<result column="sresKey" property="resKey"/>
+			<result column="stype" property="type"/>
+			<result column="sresUrl" property="resUrl"/>
+			<result column="sicon" property="icon"/>
+			<result column="sishide" property="ishide"/>
+			<result column="sdescription" property="description"/>
+			<result column="sbtnHtml" property="btnHtml"/>
+			<result column="sbtnType" property="btnType"/>
+		</collection> 
+	</resultMap>
+	<!-- SQL(基础) -->
+	<sql id="comm_sql_1">
+			s.id,s.resName, s.resKey, s.parentId, s.type, s.resUrl,s.level,s.icon,s.ishide,s.createTime,s.updateTime,s.description,s.btnHtml,s.btnType,s.searchSn,
+			(
+				SELECT group_concat(id) 
+				FROM yb_platform_resource
+				WHERE yb_platform_resource.parentId = s.id
+			) childrenIds
+	</sql>
+	<!-- SQL(联表) -->
+	<sql id="comm_sql_2">
+			,sl.id 'sid',sl.resName 'sresName',sl.resKey 'sresKey',sl.type 'stype' ,sl.resUrl 'sresUrl',sl.icon 'sicon',sl.ishide,sl.description 'sdescription'
+			,sl.btnHtml 'sbtnHtml',sl.btnType 'sbtnType'
+		FROM yb_platform_resource s
+		LEFT join yb_platform_resource sl on s.id = sl.parentId
+	</sql>
+	<!-- 插入（entity） -->
+	<insert id="insert" parameterType="com.changhong.people.business.entity.system.Resource" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO yb_platform_resource
+	 	<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="resName != null and resName != ''">resName,</if>
+			<if test="resKey != null and resKey != ''">resKey,</if>
+			<if test="parentId != null">parentId,</if>
+			<if test="type != null and type != ''">type,</if>
+			<if test="resUrl != null and resUrl != ''">resUrl,</if>
+			<if test="level != null and level != ''">level,</if>
+			<if test="icon != null and icon != ''">icon,</if>
+			<if test="ishide != null">ishide,</if>
+			<if test="createTime != null">createTime,</if>
+			<if test="updateTime != null">updateTime,</if>
+			<if test="description != null and description != ''">description,</if>
+			<if test="btnHtml != null and btnHtml != ''">btnHtml,</if>
+			<if test="btnType != null ">btnType,</if>
+			<if test="searchSn != null and searchSn != ''">searchSn</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="resName != null and resName != ''">#{resName},</if>
+			<if test="resKey != null and resKey != ''">#{resKey},</if>
+			<if test="parentId != null">#{parentId},</if>
+			<if test="type != null and type != ''">#{type},</if>
+			<if test="resUrl != null and resUrl != ''">#{resUrl},</if>
+			<if test="level != null and level != ''">#{level},</if>
+			<if test="icon != null and icon != ''">#{icon},</if>
+			<if test="ishide != null">#{ishide},</if>
+			<if test="createTime != null">#{createTime},</if>
+			<if test="updateTime != null">#{updateTime},</if>
+			<if test="description != null and description != ''">#{description},</if>
+			<if test="btnHtml != null and btnHtml != ''">#{btnHtml},</if>
+			<if test="btnType != null ">#{btnType},</if>
+			<if test="searchSn != null and searchSn != ''">#{searchSn}</if>
+		</trim>
+	</insert>
+	
+	<!-- 删除(ID) -->
+	<delete id="deleteById" parameterType="long">
+		DELETE from yb_platform_resource where id=#{id}
+	</delete>
+	
+	<!-- 修改（entity）-->
+	<update id="update" parameterType="com.changhong.people.business.entity.system.Resource">
+		UPDATE yb_platform_resource 
+		<set>
+		   <if test="resName != null and resName != ''">resName = #{resName},</if>
+		   <if test="resKey != null and resKey != ''">resKey = #{resKey},</if>
+		   <if test="type != null and type != ''">type = #{type},</if>
+		   <if test="parentId != null ">parentId = #{parentId},</if>
+		   <if test="resUrl != null and resUrl != ''">resUrl = #{resUrl},</if>
+		   <if test="level != null and level != ''">level = #{level},</if>
+		   <if test="icon != null and icon != ''">icon = #{icon},</if>
+		   <if test="ishide != null">ishide = #{ishide},</if>
+		   <if test="updateTime != null">updateTime = #{updateTime},</if>
+		   <if test="description != null and description != ''">description = #{description},</if>
+		   <if test="btnHtml != null and btnHtml != ''">btnHtml = #{btnHtml},</if>
+		   <if test="searchSn != null and searchSn != ''">searchSn = #{searchSn}</if>
+		</set>
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 查询（ID） -->
+	<select id="getById" parameterType="long" resultMap="MyResourceResult">
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+		WHERE s.id=#{id}
+	</select>
+	
+	<!-- 查询（where） -->
+	<select id="getByWhere" parameterType="hashMap" resultMap="MyResourceResult" >
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+			WHERE 1=1 and s.ishide !=1
+			<if test="(roleId != null and roleId != '') or (userId != null and userId != '' )">
+			and s.id in(
+					select resource_id 
+					from yb_platform_role_resource 
+					where 1=1 
+					<if test="userId != null and userId != '' ">
+					and role_id in (
+					 	select role_id from yb_platform_sysuser
+					 	where id = #{userId}
+					)
+					</if>
+					<if test="(roleId != null and roleId != '')">
+						and role_id = #{roleId}
+					</if>
+			)
+			</if>
+			<if test="resName !=null and resName !=''">and s.resName=#{resName}</if> 
+			<if test="resKey !=null and resKey !=''">and s.resKey=#{resKey}</if> 
+			<if test="type !=null and type !=''">and s.type=#{type}</if> 
+			<if test="ishide !=null ">and s.ishide=#{ishide}</if> 
+			<if test="parentId != null">and s.parentId = #{parentId}</if>
+	</select>
+	<!-- 查询（employee） -->
+	<select id="getByEmployeeWhere" parameterType="hashMap" resultMap="MyResourceResult" >
+		SELECT 
+			<include refid="comm_sql_1" />
+			<include refid="comm_sql_2" />
+			WHERE 1=1 and s.ishide !=1
+			<if test="(roleId != null and roleId != '') or (userId != null and userId != '' )">
+			and s.id in(
+					select resource_id 
+					from yb_platform_role_resource 
+					where 1=1 
+					<if test="userId != null and userId != '' ">
+					and role_id in (
+					 	select role_id from pm_employee
+					 	where id = #{userId}
+					)
+					</if>
+					<if test="(roleId != null and roleId != '')">
+						and role_id = #{roleId}
+					</if>
+			)
+			</if>
+			<if test="resName !=null and resName !=''">and s.resName=#{resName}</if> 
+			<if test="resKey !=null and resKey !=''">and s.resKey=#{resKey}</if> 
+			<if test="type !=null and type !=''">and s.type=#{type}</if> 
+			<if test="ishide !=null ">and s.ishide=#{ishide}</if> 
+			<if test="parentId != null">and s.parentId = #{parentId}</if>
+	</select>
+	<!-- 查询（roleIds） -->
+	<select id="getPermissionsByRoleIds" resultMap="BaseResultMap" parameterType="map">
+		SELECT DISTINCT 
+			s.id,s.resName, s.resKey, s.parentId, s.type, s.resUrl,s.level,s.icon,s.ishide,s.createTime,s.updateTime,s.description,s.btnType,s.searchSn
+		FROM yb_platform_resource s
+		LEFT JOIN yb_platform_role_resource rr on rr.resource_id = s.id
+		WHERE rr.role_id in (${roleIds}) 
+	</select>
+
+	<!-- 查询（ALL） -->
+	<select id="getAll" resultMap="BaseResultMap">
+		SELECT 
+			<include refid="comm_sql_1" />
+		FROM yb_platform_resource s 
+		where s.ishide != 1
+	</select>
+	<!-- 查询（分页查询_query） -->
+	<select id="findQuery" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultMap="BaseResultMap">
+		SELECT 
+			<include refid="comm_sql_1" />
+            <!-- <include refid="comm_sql_2" /> -->
+            ,CASE s.type WHEN 'menu1' THEN '1'
+			           WHEN 'menu2' THEN '2' 
+			           ELSE '3' 
+			END as typeId
+        FROM yb_platform_resource s
+		WHERE 1=1
+		<if test="id !=null and id !=''">and s.id=#{id}</if>  
+		<if test="resKey !=null and resKey !=''">and s.resKey=#{resKey}</if> 
+		<if test="resName !=null and resName !=''">and s.resName like CONCAT('%',#{resName},'%')</if> 
+		<if test="searchSn !=null and searchSn !=''">and (s.searchSn like CONCAT(#{searchSn},'%') or s.id =#{searchSnId})</if> 
+		ORDER BY typeId asc
+		<if test="column != null and column != ''">
+			,${column} ${sort}
+		</if>
+		LIMIT #{limit} offset #{pageOffset}
+	</select>
+	<!-- 查询（分页查询_count） -->
+	<select id="findCount" parameterType="com.changhong.people.common.utils.page.ObjectQuery" resultType="java.lang.Integer">
+		SELECT count(s.id) 
+		FROM yb_platform_resource s
+		WHERE 1=1 
+		<if test="id !=null and id !=''">and s.id=#{id}</if> 
+		<if test="resKey !=null and resKey !=''">and s.resKey=#{resKey}</if> 
+		<if test="resName !=null and resName !=''">and s.resName like CONCAT('%',#{resName},'%')</if> 
+		<if test="searchSn !=null and searchSn !=''">and (s.searchSn like CONCAT(#{searchSn},'%') or s.id =#{searchSnId})</if>
+	</select>
+	
+	
+	<select id="getChildrenById" parameterType="map" resultType="com.changhong.people.business.entity.system.Resource">
+		select * from yb_platform_resource r where 
+		<if test="searchSn !=null and searchSn !=''">r.searchSn like CONCAT(#{searchSn},'%')</if> 
+	</select>
+
+</mapper>
